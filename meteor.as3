@@ -1,0 +1,491 @@
+import flash.external.*;
+import flash.display.Sprite;
+import flash.text.*;
+
+
+//ExternalInterface.addCallback("Jfun_001",Afun_001); 
+//ExternalInterface.addCallback("Jfun_002",Afun_002);
+//ExternalInterface.addCallback("Jfun_007",Afun_007);
+//ExternalInterface.addCallback("runBall",runBall);
+
+//设置蹦出字体-显示格式
+var ARR:Array=new Array();
+var FT:TextFormat = new TextFormat();
+FT.font = "Verdana";    //字体形式 
+//FT.color = 0x33CC33;    //字体颜色 
+FT.color = 0xE6E8FA;
+FT.size = 10;	  		//字体大小
+FT.bold=true;			//是否加粗
+
+
+var FT001:TextFormat = new TextFormat();
+FT001.font = "Verdana";    //字体形式 
+//FT.color = 0x33CC33;    //字体颜色 
+FT001.color = 0xE6E8FA;
+FT001.size = 10;	  		//字体大小
+FT001.bold=true;			//是否加粗
+
+var FT002:TextFormat = new TextFormat();
+FT002.font = "Verdana";    //字体形式 
+//FT.color = 0x33CC33;    //字体颜色 
+FT002.color = 0xE6E8FA;
+FT002.size = 10;	  		//字体大小
+FT002.bold=true;			//是否加粗
+
+var FT007:TextFormat = new TextFormat();
+FT007.font = "Verdana";    //字体形式 
+//FT.color = 0x33CC33;    //字体颜色 
+FT007.color = 0xE6E8FA;
+FT007.size = 10;	  		//字体大小
+FT007.bold=true;			//是否加粗
+
+
+
+
+//以数组形式加载蹦出字体
+for (var i:int=1; i<=11; i++)
+{
+	var LAB:TextField=new TextField();
+	addChild(LAB);
+	LAB.width=100;  //文本框长度
+	LAB.autoSize=TextFieldAutoSize.CENTER; //文本框居中
+	LAB.x=100+51*(i-1);
+	LAB.y=45;
+	LAB.text="N/A";
+	LAB.setTextFormat(FT);
+    ARR.push(LAB);
+}
+
+
+
+
+
+//定义步进速度（帧频）,建议值5,10,15,20,25,30,35,40（越大越快）
+var OST:int;
+OST=50;
+
+//定义接近距离后，开始重复调用阀值
+var V_HOME:int;
+V_HOME=5;
+
+
+
+//定义5种基础颜色 绿、黄、橙、红、白
+var green:ColorTransform = new ColorTransform();
+var yellow:ColorTransform = new ColorTransform();
+var org:ColorTransform = new ColorTransform();
+var red:ColorTransform = new ColorTransform();
+var white:ColorTransform = new ColorTransform();
+var a:uint=0xFFFF00;
+var b:uint=0x33FF00;
+var c:uint=0xFF9933;
+var d:uint=0xFF0000;
+var e:uint=0xFFFFFF;
+yellow.color=a;
+green.color=b;
+org.color=c;
+red.color=d;
+white.color=e;
+
+
+//存储PS元件初始位置,固定值
+var ADDR001_x:Number=PS001.x;
+var ADDR002_x:Number=PS002.x;
+var ADDR003_x:Number=PS003.x;
+var ADDR004_x:Number=PS004.x;
+var ADDR005_x:Number=PS005.x;
+var ADDR006_x:Number=PS006.x;
+var ADDR007_x:Number=PS007.x;
+var ADDR008_x:Number=PS008.x;
+var ADDR009_x:Number=PS009.x;
+var ADDR010_x:Number=PS010.x;
+var ADDR011_x:Number=PS011.x;
+var ADDR001_y:Number=PS001.y;
+var ADDR002_y:Number=PS002.y;
+var ADDR003_y:Number=PS003.y;
+var ADDR004_y:Number=PS004.y;
+var ADDR005_y:Number=PS005.y;
+var ADDR006_y:Number=PS006.y;
+var ADDR007_y:Number=PS007.y;
+var ADDR008_y:Number=PS008.y;
+var ADDR009_y:Number=PS009.y;
+var ADDR010_y:Number=PS010.y;
+var ADDR011_y:Number=PS011.y;
+
+//存储EE元件初始位置,存储于PSMV函数中的终点变量
+var K001E_x:Number;
+var K002E_x:Number;
+var K003E_x:Number;
+var K004E_x:Number;
+var K005E_x:Number;
+var K006E_x:Number;
+var K007E_x:Number;
+var K008E_x:Number;
+var K009E_x:Number;
+var K010E_x:Number;
+var K011E_x:Number;
+var K001E_y:Number;
+var K002E_y:Number;
+var K003E_y:Number;
+var K004E_y:Number;
+var K005E_y:Number;
+var K006E_y:Number;
+var K007E_y:Number;
+var K008E_y:Number;
+var K009E_y:Number;
+var K010E_y:Number;
+var K011E_y:Number;
+
+//定义 斜率K变量
+var k001:Number;
+var k002:Number;
+var k003:Number;
+var k004:Number;
+var k005:Number;
+var k006:Number;
+var k007:Number;
+var k008:Number;
+var k009:Number;
+var k010:Number;
+var k011:Number;
+
+//定义 流星运动开关，作为接口函数的返回值
+var F001:int;
+var F002:int;
+var F003:int;
+var F004:int;
+var F005:int;
+var F006:int;
+var F007:int;
+var F008:int;
+var F009:int;
+var F010:int;
+var F011:int;
+function runBall(PARA1:Number,PARA2:Number,PARA3:Number):void
+{
+	if(PARA1==1001||PARA1==1002||PARA1==1003||PARA1==1004||PARA1==1005)
+	{
+		Afun_001(PARA1,PARA2,PARA3);
+	}
+	if(PARA1==2001||PARA1==2002||PARA1==2003||PARA1==2004||PARA1==2005)
+	{
+		Afun_002(PARA1,PARA2,PARA3);
+	}	
+	if(PARA1==7001||PARA1==7002||PARA1==7003||PARA1==7004||PARA1==7005)
+	{
+		Afun_007(PARA1,PARA2,PARA3);
+	}		
+}
+//Afun_001==================================接口函数===================
+//function Afun_001(PARA1:Number,PARA2:Number,PARA3:Number):void
+function Afun_001(PARA1:Number,PARA2:Number,PARA3:Number):int
+//PARA1 目标域名
+//PARA2 流星颜色
+//PARA3 页面耗时
+{
+	switch(PARA1) 
+	{
+		case 1001:
+		          k001=ykx(ADDR001_x,ADDR001_y,EE001.x,EE001.y);
+				  K001E_x=EE001.x;
+				  K001E_y=EE001.y;
+				  break;
+		case 1002:
+				  k001=ykx(ADDR001_x,ADDR001_y,EE002.x,EE002.y);
+				  K001E_x=EE002.x;
+				  K001E_y=EE002.y;
+				  break;
+		case 1003:
+				  k001=ykx(ADDR001_x,ADDR001_y,EE003.x,EE003.y);
+				  K001E_x=EE003.x;
+				  K001E_y=EE003.y;
+				  break;		  
+		case 1004:
+				  k001=ykx(ADDR001_x,ADDR001_y,EE004.x,EE004.y);
+				  K001E_x=EE004.x;
+				  K001E_y=EE004.y;
+				  break;				
+		case 1005:
+				  k001=ykx(ADDR001_x,ADDR001_y,EE005.x,EE005.y);
+				  K001E_x=EE005.x;
+				  K001E_y=EE005.y;
+				  break;						  
+		}
+	switch(PARA2) 
+	{
+		case 1:
+			PS001.transform.colorTransform=green;
+			FT001.color=green.color;
+			break;
+		case 2:
+			PS001.transform.colorTransform=yellow;
+			FT001.color=yellow.color;
+			break;
+		case 3:
+			PS001.transform.colorTransform=org;
+			FT001.color=org.color;
+			break;
+		case 4:
+			PS001.transform.colorTransform=red;
+			FT001.color=red.color;
+			break;
+				  
+		}
+		F001=1;
+		ARR[0].text=PARA3;
+		
+		var minuteTimer:Timer = new Timer(250/OST, OST);
+	    minuteTimer.addEventListener(TimerEvent.TIMER, PSMV001);
+		minuteTimer.start();
+		return F001;
+}
+
+//function Afun_002(PARA1:Number,PARA2:Number,PARA3:Number):void
+function Afun_002(PARA1:Number,PARA2:Number,PARA3:Number):int
+//PARA1 目标域名
+//PARA2 流星颜色
+//PARA3 页面耗时
+{
+	switch(PARA1) 
+	{
+		case 2001:
+		          k002=ykx(ADDR002_x,ADDR002_y,EE001.x,EE001.y);
+				  K002E_x=EE001.x;
+				  K002E_y=EE001.y;
+				  break;
+		case 2002:
+				  k002=ykx(ADDR002_x,ADDR002_y,EE002.x,EE002.y);
+				  K002E_x=EE002.x;
+				  K002E_y=EE002.y;
+				  break;
+		case 2003:
+				  k002=ykx(ADDR002_x,ADDR002_y,EE003.x,EE003.y);
+				  K002E_x=EE003.x;
+				  K002E_y=EE003.y;
+				  break;		  
+		case 2004:
+				  k002=ykx(ADDR002_x,ADDR002_y,EE004.x,EE004.y);
+				  K002E_x=EE004.x;
+				  K002E_y=EE004.y;
+				  break;				
+		case 2005:
+				  k002=ykx(ADDR002_x,ADDR002_y,EE005.x,EE005.y);
+				  K002E_x=EE005.x;
+				  K002E_y=EE005.y;
+				  break;						  
+		}
+	switch(PARA2) 
+	{
+		case 1:
+			PS002.transform.colorTransform=green;
+			FT002.color=green.color;
+			break;
+		case 2:
+			PS002.transform.colorTransform=yellow;
+			FT002.color=yellow.color;
+			break;
+		case 3:
+			PS002.transform.colorTransform=org;
+			FT002.color=org.color;
+			break;
+		case 4:
+			PS002.transform.colorTransform=red;
+			FT002.color=red.color;
+			break;
+				  
+		}
+		F002=1;
+		ARR[1].text=PARA3;
+		var minuteTimer:Timer = new Timer(250/OST, OST);
+	    minuteTimer.addEventListener(TimerEvent.TIMER, PSMV002);
+		minuteTimer.start();
+		return F002;
+}
+function Afun_007(PARA1:Number,PARA2:Number,PARA3:Number):int
+//function Afun_001(PARA1:Number,PARA2:Number,PARA3:Number):int
+//PARA1 目标域名
+//PARA2 流星颜色
+//PARA3 页面耗时
+{
+	switch(PARA1) 
+	{
+		case 7001:
+		          k007=ykx(ADDR007_x,ADDR007_y,EE001.x,EE001.y);
+				  K007E_x=EE001.x;
+				  K007E_y=EE001.y;
+				  break;
+		case 7002:
+				  k007=ykx(ADDR007_x,ADDR007_y,EE002.x,EE002.y);
+				  K007E_x=EE002.x;
+				  K007E_y=EE002.y;
+				  break;
+		case 7003:
+				  k007=ykx(ADDR007_x,ADDR007_y,EE003.x,EE003.y);
+				  K007E_x=EE003.x;
+				  K007E_y=EE003.y;
+				  break;		  
+		case 7004:
+				  k007=ykx(ADDR007_x,ADDR007_y,EE004.x,EE004.y);
+				  K007E_x=EE004.x;
+				  K007E_y=EE004.y;
+				  break;				
+		case 7005:
+				  k007=ykx(ADDR007_x,ADDR007_y,EE005.x,EE005.y);
+				  K007E_x=EE005.x;
+				  K007E_y=EE005.y;
+				  break;						  
+		}
+	switch(PARA2) 
+	{
+		case 1:
+			PS007.transform.colorTransform=green;
+			FT007.color=green.color;
+			break;
+		case 2:
+			PS007.transform.colorTransform=yellow;
+			FT007.color=yellow.color;
+			break;
+		case 3:
+			PS007.transform.colorTransform=org;
+			FT007.color=org.color;
+			break;
+		case 4:
+			PS007.transform.colorTransform=red;
+			FT007.color=red.color;
+			break;
+				  
+		}
+		F007=1;
+		ARR[6].text=PARA3;
+		var minuteTimer:Timer = new Timer(250/OST, OST);
+	    minuteTimer.addEventListener(TimerEvent.TIMER, PSMV007);
+		minuteTimer.start();
+		return F007;
+}
+
+
+
+
+setInterval(lin1,1000);
+setInterval(lin2,500);
+setInterval(lin7,800);
+
+
+function lin1()
+{
+var v1:int = 1001+5* Math.random();
+var v2:int = 1+3* Math.random();
+var v3:int = 1+20* Math.random();
+F001=Afun_001(v1,v2,v3);
+}
+function lin2()
+{
+	var v1:int = 2001+5* Math.random();
+var v2:int = 1+3* Math.random();
+var v3:int = 1+20* Math.random();
+F002=Afun_002(v1,v2,v3);
+}
+function lin7()
+{
+	var v1:int = 7001+5* Math.random();
+var v2:int = 1+3* Math.random();
+var v3:int = 1+20* Math.random();
+F007=Afun_007(v1,v2,v3);
+}
+
+
+
+
+
+function ykx(sx:Number,sy:Number,ex:Number,ey:Number):Number
+// 计算小球移动轨迹y=kx函数的k值斜率
+{
+
+	var k:Number;
+	var difx:Number;
+	var dify:Number;
+	difx=ex-sx;
+	dify=ey-sy;
+	k=dify/difx;
+	return k;
+}
+
+//流星监听事件中完成的一系列动作
+function PSMV001(e:Event):void
+{
+	
+   if (F001==1) 
+   {
+	FT001.size +=0.53;
+	ARR[0].setTextFormat(FT001);   
+	PS001.x +=((K001E_x-ADDR001_x)/50)*F001;
+	PS001.y +=(((K001E_x-ADDR001_x)/50)*k001)*F001;
+	if (Math.abs(K001E_y-PS001.y) <=V_HOME)
+	  {
+		  PS001.x =ADDR001_x;
+		  PS001.y =ADDR001_y;
+		  FT001.size=0;
+		  FT001.color=0xE6E8FA;
+	      ARR[0].setTextFormat(FT001);
+		  F001=0;
+		  ARR[0].text="N/A";
+		  
+		  
+	  }
+   }
+
+}
+	
+function PSMV002(f:Event):void
+{
+
+   if (F002==1) 
+   {
+	FT002.size +=0.53;
+	ARR[1].setTextFormat(FT002);   
+	PS002.x +=((K002E_x-ADDR002_x)/OST)*F002;
+	PS002.y +=(((K002E_x-ADDR002_x)/OST)*k002)*F002;
+	if (Math.abs(K002E_y-PS002.y) <=V_HOME)
+	  {
+		  PS002.x =ADDR002_x;
+		  PS002.y =ADDR002_y;
+		  FT002.size=0;
+		  FT002.color=0xFF0000;
+	      ARR[1].setTextFormat(FT002);
+		  F002=0;
+		  ARR[1].text="N/A";
+	  }
+   }
+}
+
+function PSMV007(f:Event):void
+{
+
+   if (F007==1) 
+   {
+	FT007.size +=0.53;
+	ARR[6].setTextFormat(FT007);   
+	PS007.x +=((K007E_x-ADDR007_x)/OST)*F007;
+	PS007.y +=(((K007E_x-ADDR007_x)/OST)*k007)*F007;
+	if (Math.abs(K007E_y-PS007.y) <=V_HOME)
+	  {
+		  PS007.x =ADDR007_x;
+		  PS007.y =ADDR007_y;
+		  FT007.size=0;
+		  FT007.color=0x33FF00;
+	      ARR[6].setTextFormat(FT007);
+		  F007=0;
+		  ARR[6].text="N/A";
+	  }
+   }
+}
+
+
+
+	
+//流星监听事件
+//PS001.addEventListener("enterFrame",PSMV001);
+//PS002.addEventListener("enterFrame",PSMV002);
+//TXT.addEventListener("enterFrame",AAA);
+
+//PS002.addEventListener("enterFrame",PSMV002);
